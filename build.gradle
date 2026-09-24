@@ -29,33 +29,19 @@ allure {
 
 dependencies {
 
-    // JUnit 5
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 
-    // REST Assured
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testImplementation 'io.rest-assured:json-schema-validator:5.4.0'
     testImplementation 'io.rest-assured:rest-assured:5.4.0'
-
-    // AssertJ
     testImplementation 'org.assertj:assertj-core:3.25.3'
 
-    // Jackson
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
-
-    // Allure
     testImplementation "io.qameta.allure:allure-rest-assured:$allureVersion"
     testImplementation "io.qameta.allure:allure-junit5:$allureVersion"
-
-    // AspectJ (обязателен для @Step и ассертов как шагов)
     testImplementation "org.aspectj:aspectjweaver:$aspectjVersion"
 
-    // DataFaker
     testImplementation 'net.datafaker:datafaker:2.1.0'
-
-    // JUnit Platform Launcher
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     testCompileOnly 'org.projectlombok:lombok:1.18.30'
