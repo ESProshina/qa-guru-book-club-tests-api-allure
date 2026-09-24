@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.step;
 import static specs.user.UserSpec.*;
 import static tests.TestData.*;
 
@@ -59,7 +60,7 @@ public class UpdateUserTests extends TestBase {
                 INVALID_EMAIL
         );
 
-        var response = Allure.step(
+        var response = step(
                 "Отправка PATCH /users/me/ с невалидным email",
                 () -> api.users.updateUserWithSpec(accessToken, updateData, userResponse400Spec)
         );
