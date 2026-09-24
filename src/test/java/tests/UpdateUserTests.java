@@ -1,5 +1,6 @@
 package tests;
 
+import io.qameta.allure.Allure;
 import models.login.LoginBodyModel;
 import models.user.UpdateUserBodyModel;
 import models.user.UserResponseModel;
@@ -17,8 +18,10 @@ public class UpdateUserTests extends TestBase {
 
     @BeforeEach
     public void auth() {
-        LoginBodyModel loginData = new LoginBodyModel(LOGIN_USERNAME, LOGIN_PASSWORD);
-        accessToken = api.auth.loginAndGetAccessToken(loginData);
+        Allure.step("Авторизация и получение access-токена", () -> {
+            LoginBodyModel loginData = new LoginBodyModel(LOGIN_USERNAME, LOGIN_PASSWORD);
+            accessToken = api.auth.loginAndGetAccessToken(loginData);
+        });
     }
 
     @Test
@@ -32,11 +35,19 @@ public class UpdateUserTests extends TestBase {
                 uniqueEmail
         );
 
-        UserResponseModel response = api.users.updateUser(accessToken, updateData);
+        UserResponseModel response = Allure.step(
+                "Отправка PATCH /users/me/ с новыми данными",
+                () -> api.users.updateUser(accessToken, updateData)
+        );
 
-        assertThat(response.firstName()).isEqualTo(UPDATED_FIRST_NAME);
-        assertThat(response.lastName()).isEqualTo(UPDATED_LAST_NAME);
-        assertThat(response.email()).isEqualTo(uniqueEmail);
+        Allure.step("Проверка поля firstName", () ->
+                assertThat(response.firstName()).isEqualTo(UPDATED_FIRST_NAME));
+
+        Allure.step("Проверка поля lastName", () ->
+                assertThat(response.lastName()).isEqualTo(UPDATED_LAST_NAME));
+
+        Allure.step("Проверка поля email", () ->
+                assertThat(response.email()).isEqualTo(uniqueEmail));
     }
 
     @Test
@@ -48,10 +59,16 @@ public class UpdateUserTests extends TestBase {
                 INVALID_EMAIL
         );
 
-        var response = api.users.updateUserWithSpec(accessToken, updateData, userResponse400Spec);
+        var response = Allure.step(
+                "Отправка PATCH /users/me/ с невалидным email",
+                () -> api.users.updateUserWithSpec(accessToken, updateData, userResponse400Spec)
+        );
 
-        assertThat(response.path("email[0]").toString()).isEqualTo(INVALID_EMAIL_ERROR);
+        Allure.step("Проверка сообщения об ошибке email", () ->
+                assertThat(response.path("email[0]").toString())
+                        .isEqualTo(INVALID_EMAIL_ERROR));
     }
+
     @Test
     @DisplayName("Негативный: Обновление пользователя без токена авторизации (401 Unauthorized)")
     public void updateUserWithoutTokenTest() {
@@ -60,8 +77,14 @@ public class UpdateUserTests extends TestBase {
                 UPDATED_LAST_NAME,
                 UPDATED_EMAIL
         );
-        var response = api.users.updateUserWithSpec(null, updateData, userResponse401Spec);
 
-        assertThat(response.path("detail").toString()).isEqualTo(UNAUTHORIZED_ERROR);
+        var response = Allure.step(
+                "Отправка PATCH /users/me/ без токена авторизации",
+                () -> api.users.updateUserWithSpec(null, updateData, userResponse401Spec)
+        );
+
+        Allure.step("Проверка сообщения об ошибке", () ->
+                assertThat(response.path("detail").toString())
+                        .isEqualTo(UNAUTHORIZED_ERROR));
     }
 }

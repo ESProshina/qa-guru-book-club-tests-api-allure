@@ -1,5 +1,6 @@
 package tests;
 
+import io.qameta.allure.Allure;
 import models.login.LoginBodyModel;
 import models.login.SuccessfulLoginResponseModel;
 import org.junit.jupiter.api.DisplayName;
@@ -17,13 +18,19 @@ public class LoginTests extends TestBase {
     public void successfulLoginTest() {
         LoginBodyModel loginData = new LoginBodyModel(LOGIN_USERNAME, LOGIN_PASSWORD);
 
-        SuccessfulLoginResponseModel loginResponse = api.auth.login(loginData);
+        SuccessfulLoginResponseModel loginResponse = Allure.step(
+                "Отправка POST /auth/token/ с логином " + LOGIN_USERNAME,
+                () -> api.auth.login(loginData)
+        );
 
-        String actualAccess = loginResponse.access();
-        String actualRefresh = loginResponse.refresh();
-        assertThat(actualAccess).startsWith(LOGIN_TOKEN_PREFIX);
-        assertThat(actualRefresh).startsWith(LOGIN_TOKEN_PREFIX);
-        assertThat(actualAccess).isNotEqualTo(actualRefresh);
+        Allure.step("Проверка access-токена", () ->
+                assertThat(loginResponse.access()).startsWith(LOGIN_TOKEN_PREFIX));
+
+        Allure.step("Проверка refresh-токена", () ->
+                assertThat(loginResponse.refresh()).startsWith(LOGIN_TOKEN_PREFIX));
+
+        Allure.step("Проверка, что access и refresh различаются", () ->
+                assertThat(loginResponse.access()).isNotEqualTo(loginResponse.refresh()));
     }
 
     @Test
@@ -31,9 +38,14 @@ public class LoginTests extends TestBase {
     public void wrongCredentialsLoginTest() {
         LoginBodyModel loginData = new LoginBodyModel(LOGIN_USERNAME, LOGIN_WRONG_PASSWORD);
 
-        var response = api.auth.loginWithSpec(loginData, wrongCredentialsLoginResponseSpec);
+        var response = Allure.step(
+                "Отправка POST /auth/token/ с неверным паролем",
+                () -> api.auth.loginWithSpec(loginData, wrongCredentialsLoginResponseSpec)
+        );
 
-        assertThat(response.path("detail").toString()).isEqualTo(LOGIN_WRONG_CREDENTIALS_ERROR);
+        Allure.step("Проверка сообщения об ошибке", () ->
+                assertThat(response.path("detail").toString())
+                        .isEqualTo(LOGIN_WRONG_CREDENTIALS_ERROR));
     }
 
     @Test
@@ -41,9 +53,14 @@ public class LoginTests extends TestBase {
     public void loginWithInvalidPasswordTest() {
         LoginBodyModel loginData = new LoginBodyModel(LOGIN_USERNAME, LOGIN_WRONG_PASSWORD);
 
-        var response = api.auth.loginWithSpec(loginData, wrongCredentialsLoginResponseSpec);
+        var response = Allure.step(
+                "Отправка POST /auth/token/ с неверным паролем",
+                () -> api.auth.loginWithSpec(loginData, wrongCredentialsLoginResponseSpec)
+        );
 
-        assertThat(response.path("detail").toString()).isEqualTo(LOGIN_WRONG_CREDENTIALS_ERROR);
+        Allure.step("Проверка сообщения об ошибке", () ->
+                assertThat(response.path("detail").toString())
+                        .isEqualTo(LOGIN_WRONG_CREDENTIALS_ERROR));
     }
 
     @Test
@@ -51,9 +68,14 @@ public class LoginTests extends TestBase {
     public void loginWithNonExistentUserTest() {
         LoginBodyModel loginData = new LoginBodyModel(LOGIN_WRONG_USERNAME, LOGIN_PASSWORD);
 
-        var response = api.auth.loginWithSpec(loginData, wrongCredentialsLoginResponseSpec);
+        var response = Allure.step(
+                "Отправка POST /auth/token/ с несуществующим пользователем",
+                () -> api.auth.loginWithSpec(loginData, wrongCredentialsLoginResponseSpec)
+        );
 
-        assertThat(response.path("detail").toString()).isEqualTo(LOGIN_WRONG_CREDENTIALS_ERROR);
+        Allure.step("Проверка сообщения об ошибке", () ->
+                assertThat(response.path("detail").toString())
+                        .isEqualTo(LOGIN_WRONG_CREDENTIALS_ERROR));
     }
 
     @Test
@@ -61,9 +83,17 @@ public class LoginTests extends TestBase {
     public void loginWithEmptyCredentialsTest() {
         LoginBodyModel loginData = new LoginBodyModel(EMPTY_STRING, EMPTY_STRING);
 
-        var response = api.auth.loginWithSpec(loginData, loginResponse400Spec);
+        var response = Allure.step(
+                "Отправка POST /auth/token/ с пустыми полями",
+                () -> api.auth.loginWithSpec(loginData, loginResponse400Spec)
+        );
 
-        assertThat(response.path("username[0]").toString()).isEqualTo(FIELD_REQUIRED_ERROR);
-        assertThat(response.path("password[0]").toString()).isEqualTo(FIELD_REQUIRED_ERROR);
+        Allure.step("Проверка ошибки для поля username", () ->
+                assertThat(response.path("username[0]").toString())
+                        .isEqualTo(FIELD_REQUIRED_ERROR));
+
+        Allure.step("Проверка ошибки для поля password", () ->
+                assertThat(response.path("password[0]").toString())
+                        .isEqualTo(FIELD_REQUIRED_ERROR));
     }
 }

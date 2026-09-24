@@ -1,5 +1,6 @@
 package tests;
 
+import io.qameta.allure.Allure;
 import models.registration.RegistrationBodyModel;
 import models.registration.SuccessfulRegistrationResponseModel;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,25 +27,43 @@ public class RegistrationTests extends TestBase {
     public void successfulRegistrationTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(username, password);
 
-        SuccessfulRegistrationResponseModel registrationResponse =
-                api.users.register(registrationData);
+        SuccessfulRegistrationResponseModel registrationResponse = Allure.step(
+                "Отправка POST /users/register/ с логином " + username,
+                () -> api.users.register(registrationData)
+        );
 
-        assertThat(registrationResponse.id()).isGreaterThan(0);
-        assertThat(registrationResponse.username()).isEqualTo(username);
-        assertThat(registrationResponse.firstName()).isEqualTo("");
-        assertThat(registrationResponse.lastName()).isEqualTo("");
-        assertThat(registrationResponse.email()).isEqualTo("");
+        Allure.step("Проверка id пользователя", () ->
+                assertThat(registrationResponse.id()).isGreaterThan(0));
 
-        assertThat(registrationResponse.remoteAddr()).matches(REGISTRATION_IP_REGEXP);
+        Allure.step("Проверка username", () ->
+                assertThat(registrationResponse.username()).isEqualTo(username));
+
+        Allure.step("Проверка пустого firstName", () ->
+                assertThat(registrationResponse.firstName()).isEqualTo(""));
+
+        Allure.step("Проверка пустого lastName", () ->
+                assertThat(registrationResponse.lastName()).isEqualTo(""));
+
+        Allure.step("Проверка пустого email", () ->
+                assertThat(registrationResponse.email()).isEqualTo(""));
+
+        Allure.step("Проверка формата remoteAddr (IP-адрес)", () ->
+                assertThat(registrationResponse.remoteAddr()).matches(REGISTRATION_IP_REGEXP));
     }
+
     @Test
     @DisplayName("Негативный: Регистрация без пароля (400 Bad Request)")
     public void registrationWithoutPasswordTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(username, EMPTY_STRING);
 
-        var response = api.users.registerWithSpec(registrationData, registrationResponse400Spec);
+        var response = Allure.step(
+                "Отправка POST /users/register/ без пароля",
+                () -> api.users.registerWithSpec(registrationData, registrationResponse400Spec)
+        );
 
-        assertThat(response.path("password[0]").toString()).isEqualTo(FIELD_REQUIRED_ERROR);
+        Allure.step("Проверка ошибки для поля password", () ->
+                assertThat(response.path("password[0]").toString())
+                        .isEqualTo(FIELD_REQUIRED_ERROR));
     }
 
     @Test
@@ -52,8 +71,13 @@ public class RegistrationTests extends TestBase {
     public void registrationWithoutUsernameTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(EMPTY_STRING, password);
 
-        var response = api.users.registerWithSpec(registrationData, registrationResponse400Spec);
+        var response = Allure.step(
+                "Отправка POST /users/register/ без логина",
+                () -> api.users.registerWithSpec(registrationData, registrationResponse400Spec)
+        );
 
-        assertThat(response.path("username[0]").toString()).isEqualTo(FIELD_REQUIRED_ERROR);
+        Allure.step("Проверка ошибки для поля username", () ->
+                assertThat(response.path("username[0]").toString())
+                        .isEqualTo(FIELD_REQUIRED_ERROR));
     }
 }

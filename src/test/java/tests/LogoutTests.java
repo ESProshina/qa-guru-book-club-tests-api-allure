@@ -1,5 +1,6 @@
 package tests;
 
+import io.qameta.allure.Allure;
 import models.login.LoginBodyModel;
 import models.logout.LogoutBodyModel;
 import org.junit.jupiter.api.DisplayName;
@@ -16,10 +17,16 @@ public class LogoutTests extends TestBase {
     @DisplayName("Позитивный: Успешный разлогин с валидным refresh-токеном")
     public void successfulLogoutTest() {
         LoginBodyModel loginData = new LoginBodyModel(LOGIN_USERNAME, LOGIN_PASSWORD);
-        String refreshToken = api.auth.loginAndGetRefreshToken(loginData);
+
+        String refreshToken = Allure.step(
+                "Получение refresh-токена через логин",
+                () -> api.auth.loginAndGetRefreshToken(loginData)
+        );
 
         LogoutBodyModel logoutBody = new LogoutBodyModel(refreshToken);
-        api.auth.logout(logoutBody);
+
+        Allure.step("Отправка POST /auth/logout/ с валидным refresh-токеном", () ->
+                api.auth.logout(logoutBody));
     }
 
     @Test
@@ -27,10 +34,18 @@ public class LogoutTests extends TestBase {
     public void logoutWithInvalidTokenTest() {
         LogoutBodyModel logoutBody = new LogoutBodyModel(INVALID_REFRESH_TOKEN);
 
-        var response = api.auth.logoutWithSpec(logoutBody, logoutResponse401Spec);
+        var response = Allure.step(
+                "Отправка POST /auth/logout/ с невалидным токеном",
+                () -> api.auth.logoutWithSpec(logoutBody, logoutResponse401Spec)
+        );
 
-        assertThat(response.path("detail").toString()).isEqualTo(INVALID_TOKEN_ERROR);
-        assertThat(response.path("code").toString()).isEqualTo("token_not_valid");
+        Allure.step("Проверка сообщения об ошибке", () ->
+                assertThat(response.path("detail").toString())
+                        .isEqualTo(INVALID_TOKEN_ERROR));
+
+        Allure.step("Проверка кода ошибки", () ->
+                assertThat(response.path("code").toString())
+                        .isEqualTo(INVALID_TOKEN_CODE));
     }
 
     @Test
@@ -38,8 +53,13 @@ public class LogoutTests extends TestBase {
     public void logoutWithEmptyTokenTest() {
         LogoutBodyModel logoutBody = new LogoutBodyModel(EMPTY_STRING);
 
-        var response = api.auth.logoutWithSpec(logoutBody, logoutResponse400Spec);
+        var response = Allure.step(
+                "Отправка POST /auth/logout/ с пустым токеном",
+                () -> api.auth.logoutWithSpec(logoutBody, logoutResponse400Spec)
+        );
 
-        assertThat(response.path("refresh[0]").toString()).isEqualTo(FIELD_REQUIRED_ERROR);
+        Allure.step("Проверка ошибки для поля refresh", () ->
+                assertThat(response.path("refresh[0]").toString())
+                        .isEqualTo(FIELD_REQUIRED_ERROR));
     }
 }

@@ -1,7 +1,10 @@
 package tests;
 
 import api.ApiClient;
+import io.restassured.RestAssured;
 import org.junit.jupiter.api.BeforeAll;
+
+import static specs.BaseSpec.baseRequestSpec;
 
 public class TestBase {
 
@@ -9,6 +12,8 @@ public class TestBase {
 
     @BeforeAll
     public static void setUp() {
+        // Фильтр Allure уже подключён в BaseSpec (baseRequestSpec.addFilter)
+        RestAssured.requestSpecification = baseRequestSpec;
         api = new ApiClient();
     }
 }
